@@ -6,6 +6,7 @@
 #include <cstdlib>
 
 
+const int ERROR = -1;
 enum tokentype {
   VOID = 1,
   INT = 2,
