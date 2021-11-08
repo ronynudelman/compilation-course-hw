@@ -6,7 +6,11 @@
 #include <cstdlib>
 
 
-const int ERROR = -1;
+const int ERROR_UNDEFINED_ESCAPE = -1;
+const int ERROR_CHAR = -2;
+const int ERROR_STRING_END = -3;
+const int ERROR_UNCLOSED_STRING = -4;
+const int ERROR_UNDEFINED_ESCAPE_X = -5;
 enum tokentype {
   VOID = 1,
   INT = 2,

@@ -5,7 +5,8 @@
 #include <sstream>
 
 
-void handle_token(int token) {
+
+void handle_token(int token, bool& string_is_open) {
 	switch (token) {
 		case VOID:
 			print_token_info("VOID");
@@ -92,13 +93,25 @@ void handle_token(int token) {
 			print_token_info("NUM");
 			break;
 		case STRING:
-			print_token_info("STRING");
+			print_token_info("STRING", &string_is_open);
 			break;
-		case ERROR:
-			handle_error("ERROR");
+		case ERROR_CHAR:
+			handle_error_char();
 			break;
+		case ERROR_STRING_END:
+			handle_error_string_end();
+			break;
+		case ERROR_UNDEFINED_ESCAPE:
+			handle_error_undefined_escape();
+			break;
+		case ERROR_UNCLOSED_STRING:
+			handle_error_unclosed_string();
+			break;
+		case ERROR_UNDEFINED_ESCAPE_X:
+			handle_error_undefined_escape_x();
 		default:
-			handle_error("ERROR");
+			std::cout << "Undefined error !!!" << std::endl;
+			exit(0);
 	}
 }
 
@@ -128,14 +141,19 @@ void parse_char(std::string& c) {
 }
 
 
-void print_token_info(const char* token_name) {
+void print_token_info(const char* token_name, bool* string_is_open) {
 	static std::string current_str;
 	if (std::string(token_name) == std::string("COMMENT")) {
 		std::cout << yylineno << " " << token_name << " " << "//" << "\n";
 	} else if (std::string(token_name) == std::string("STRING")) {
 		if (std::string(yytext) == std::string("\"")) {
-			std::cout << yylineno << " " << token_name << " " << current_str << "\n";
-			current_str.clear();
+			if (*string_is_open) {
+				std::cout << yylineno << " " << token_name << " " << current_str << "\n";
+				current_str.clear();
+				*string_is_open = false;
+			} else {
+				*string_is_open = true;
+			}
 		} else {
 			std::string current_char(yytext);
 			parse_char(current_char);
@@ -147,7 +165,36 @@ void print_token_info(const char* token_name) {
 }
 
 
-void handle_error(std::string error_msg) {
-	std::cout << error_msg << "\n";
+void handle_error_char() {
+	std::cout << "Error " << yytext << "\n";
 	exit(0);
 }
+
+void handle_error_string_end() {
+	std::cout << "Error unclosed string" << "\n";
+	exit(0);
+}
+
+
+void handle_error_undefined_escape(){
+	std::string error_sequence(yytext);
+	std::cout << "Error undefined escape sequence " << error_sequence[1] << "\n";
+	exit(0);
+}
+
+void handle_error_unclosed_string() {
+	std::cout << "Error unclosed string" << "\n";
+	exit(0);
+}
+
+void handle_error_undefined_escape_x() {
+	std::string error_sequence(yytext);
+	error_sequence.erase(0,1);
+	std::cout << "Error undefined escape sequence " << error_sequence << "\n";
+	exit(0);
+}
+
+
+
+	
+	

@@ -9,8 +9,11 @@ letter        [a-zA-Z]
 digit         [0-9]
 printable     [\x20-\x7E]
 allowed       \\\\|\\\"|\\n|\\r|\\t|\\0|\\x[0-7][0-9A-F]
-forbidden     [\\\n\r]
+undefined_escape	\\.|\\\n|\\\r
+undefined_escape_x	\\x|\\x(.|\r\n)|\\x(.|\r\n)(.|\r\n)
+string_end [\n\r]
 whitespace    [ \t\n\r]
+back_slash		\\
 %x STRING_READ
 
 %%
@@ -44,14 +47,17 @@ continue                                      return CONTINUE;
 {letter}({letter}|{digit})*                   return ID;
 0|[1-9]{digit}*                               return NUM;
 
-\"                                            BEGIN(STRING_READ);
+\"                                            BEGIN(STRING_READ); return STRING;
 <STRING_READ>{allowed}                        return STRING;
-<STRING_READ>{forbidden}                      BEGIN(INITIAL); return ERROR;
+<STRING_READ>{back_slash}                     BEGIN(INITIAL); return ERROR_UNCLOSED_STRING;
+<STRING_READ>{undefined_escape}				  BEGIN(INITIAL); return ERROR_UNDEFINED_ESCAPE;
+<STRING_READ>{undefined_escape_x}			  BEGIN(INITIAL); return ERROR_UNDEFINED_ESCAPE_X;
+<STRING_READ>{string_end}                     BEGIN(INITIAL); return ERROR_STRING_END;
 <STRING_READ>\"                               BEGIN(INITIAL); return STRING;
 <STRING_READ>{printable}                      return STRING;
-<STRING_READ>.                                BEGIN(INITIAL); return ERROR;
+<STRING_READ>.                                BEGIN(INITIAL); return ERROR_CHAR;
 
 {whitespace}                                  ;
-.                                             return ERROR;
+.                                             return ERROR_CHAR;
 
 %%
