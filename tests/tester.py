@@ -67,7 +67,13 @@ For instance:
 tests/tester.py --compile --run_test 4
 """
     RUN_TEST_CMD = [os.path.join(MAIN_DIR, EXEC_FILE)]
-
+    ERROR_TYPES = [
+        "ERROR_CHAR_OUTSIDE_OF_STRING",
+        # "ERROR_CHAR_INSIDE_OF_STRING",
+        "ERROR_STRING_NEW_LINE",
+        "ERROR_STRING_UNDEFINED_ESCAPE_SEQUENCE",
+        "ERROR_STRING_LAST_CHAR_IS_BACKSLASH"
+    ]
 
     @staticmethod
     def colored_print(str, color, new_line):
@@ -110,6 +116,10 @@ tests/tester.py --compile --run_test 4
         parser.add_argument("-s", "--show_diff",
                             default=None,
                             help="show diff file of specific test")
+        parser.add_argument("-e", "--errors",
+                            action="store_true",
+                            default=False,
+                            help="generate negative tests")
         return parser.parse_args()
 
     @classmethod
@@ -340,36 +350,72 @@ tests/tester.py --compile --run_test 4
 
     @classmethod
     def get_random_whitespace(cls):
-        random_index = random.randint(0, len(cls.WHITESPACES) - 1)
-        random_whitespace = cls.WHITESPACES[random_index]
-        return random_whitespace
+        return random.choice(cls.WHITESPACES)
 
     @classmethod
-    def generate_single_file(cls, file_index):
+    def generate_random_error(cls):
+        error_type = random.choice(cls.ERROR_TYPES)
+        if error_type == "ERROR_CHAR_OUTSIDE_OF_STRING":
+            error_expected_str = "Error " + "$" + "\n"
+            error_input = "$"
+            return error_expected_str, error_input
+        elif error_type =="ERROR_STRING_NEW_LINE":
+            error_expected_str = "Error unclosed string\n"
+            _, error_input, _ = cls.get_random_string_token()
+            # should I also support \r and not just \n?
+            error_input = error_input[:-1] + "\n" + error_input[-1]
+            return error_expected_str, error_input
+        elif error_type == "ERROR_STRING_UNDEFINED_ESCAPE_SEQUENCE":
+            error_expected_str = "Error undefined escape sequence " + "xF5" + "\n"
+            _, error_input_perfix, _ = cls.get_random_string_token()
+            _, error_input_suffix, _ = cls.get_random_string_token()
+            error_input = error_input_perfix[:-1] + "\\xF5" + error_input_suffix[1:]
+            return error_expected_str, error_input
+        elif error_type == "ERROR_STRING_LAST_CHAR_IS_BACKSLASH":
+            error_expected_str = "Error unclosed string\n"
+            _, error_input, _ = cls.get_random_string_token()
+            error_input = error_input[:-1] + "\\" + error_input[-1]
+            return error_expected_str, error_input
+
+    @classmethod
+    def generate_single_file(cls, file_index, check_errors):
         input_file_name = cls.INPUT_FILE + '_' + str(file_index) + ".txt"
         expected_file_name = cls.EXPECTED_FILE + '_' + str(file_index) + ".txt"
+        generated_tokens_counter = 0;
+        if check_errors:
+            error_location = random.randint(0, cls.GENERATED_TOKENS)
+        else:
+            error_location = cls.GENERATED_TOKENS + 1
         with open(input_file_name, 'w') as input_file:
             with open(expected_file_name, 'w') as expected_file:
                 current_line_number = 1
                 for _ in range(cls.GENERATED_TOKENS):
                     whitespace = cls.get_random_whitespace()
-                    token_name, token_value_input, token_value_expected = cls.get_random_token()
-                    expected_line = str(current_line_number) + " "
-                    expected_line += token_name + " "
-                    expected_line += token_value_expected + "\n"
-                    expected_file.write(expected_line)
-                    input_file.write(token_value_input)
+                    if check_errors and error_location == generated_tokens_counter:
+                        error_expected_str, error_input = cls.generate_random_error()
+                        input_line = error_input
+                        expected_line = error_expected_str
+                    else: # generate a valid token
+                        token_name, token_value_input, token_value_expected = cls.get_random_token()
+                        input_line = token_value_input
+                        expected_line = str(current_line_number) + " "
+                        expected_line += token_name + " "
+                        expected_line += token_value_expected + "\n"
+                        if token_name == "COMMENT":
+                            current_line_number += 1
+                    if check_errors and error_location >= generated_tokens_counter:
+                        expected_file.write(expected_line)
+                    input_file.write(input_line)
                     input_file.write(whitespace)
-                    if token_name == "COMMENT":
-                        current_line_number += 1
                     if whitespace in cls.NEW_LINE:
                         current_line_number += 1
+                    generated_tokens_counter += 1
 
     @classmethod
-    def generate_files(cls):
+    def generate_files(cls, check_errors):
         cls.colored_print("Generating files...", "MAGENTA", new_line=False)
         for i in range(cls.GENERATED_FILES):
-            cls.generate_single_file(i)
+            cls.generate_single_file(i, check_errors)
         cls.colored_print("          DONE", "GREEN", new_line=True)
 
     @classmethod
@@ -468,7 +514,7 @@ def main():
         Tester.print_diff_file(args.show_diff)
     Tester.prepare_env(args)
     if (not args.keep_files) and (args.run_test == "all"):
-        Tester.generate_files()
+        Tester.generate_files(args.errors)
     if args.compile:
         Tester.compile()
     if not args.dont_test:
