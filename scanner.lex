@@ -8,6 +8,7 @@
 
 letter                                [a-zA-Z]
 digit                                 [0-9]
+string_open_close                     [\"]
 string_printable_char                 [\t\x20-\x7E]
 string_defined_escape_sequence        \\\\|\\\"|\\n|\\r|\\t|\\0|\\x[0-7][0-9A-F]
 string_undefined_escape_sequence      \\.|\\\n|\\\r|\\x|\\x(.|\r\n)|\\x(.|\r\n)(.|\r\n)
@@ -47,11 +48,11 @@ continue                                      return CONTINUE;
 {letter}({letter}|{digit})*                   return ID;
 0|[1-9]{digit}*                               return NUM;
 
-\"                                                  BEGIN(STRING_READ); return STRING;
+{string_open_close}                                 BEGIN(STRING_READ); return STRING;
 <STRING_READ>{string_defined_escape_sequence}       return STRING;
 <STRING_READ>{string_undefined_escape_sequence}     return ERROR_STRING_UNDEFINED_ESCAPE_SEQUENCE;
 <STRING_READ>{string_unexpected_end}                return ERROR_STRING_UNEXPECTED_END;
-<STRING_READ>\"                                     BEGIN(INITIAL); return STRING;
+<STRING_READ>{string_open_close}                    BEGIN(INITIAL); return STRING;
 <STRING_READ>{string_printable_char}                return STRING;
 <STRING_READ>.                                      return ERROR_UNDEFINED_LEXEME;
 
