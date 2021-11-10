@@ -1,9 +1,3 @@
-add to config file the option of STRING, COMMENT, etc
-
-add errors to the tests (negative tests)
-
-publish the tester
-
 add support for no spaces at all between tokens
 need to classify each token - can it not have any space after it or not
 i.e.

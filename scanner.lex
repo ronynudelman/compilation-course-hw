@@ -12,7 +12,7 @@ string_open_close                     [\"]
 string_printable_char                 [\t\x20-\x7E]
 string_defined_escape_sequence        \\\\|\\\"|\\n|\\r|\\t|\\0|\\x[0-7][0-9A-F]
 string_undefined_escape_sequence      \\.|\\\n|\\\r|\\x|\\x(.|\r\n)|\\x(.|\r\n)(.|\r\n)
-string_unexpected_end                 [\n\r]
+string_unexpected_end                 [\n]
 whitespace                            [ \t\n\r]
 
 %x STRING_READ
