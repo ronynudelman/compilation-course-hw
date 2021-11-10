@@ -6,12 +6,12 @@
 #include <cstdlib>
 
 
-const int ERROR_UNDEFINED_ESCAPE = -1;
-const int ERROR_CHAR = -2;
-const int ERROR_STRING_END = -3;
-const int ERROR_UNCLOSED_STRING = -4;
-const int ERROR_UNDEFINED_ESCAPE_X = -5;
-enum tokentype {
+const int ERROR_UNDEFINED_LEXEME = -1;
+const int ERROR_STRING_UNEXPECTED_END = -2;
+const int ERROR_STRING_UNDEFINED_ESCAPE_SEQUENCE = -3;
+
+
+enum TokenType {
   VOID = 1,
   INT = 2,
   BYTE = 3,

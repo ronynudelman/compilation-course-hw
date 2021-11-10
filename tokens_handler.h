@@ -3,15 +3,51 @@
 
 
 #include <string>
+#include "tokens.hpp"
 
-void handle_token(int token, bool& string_open);
-void parse_char(std::string& c);
-void print_token_info(const char* token_name, bool* string_open = nullptr);
-//void handle_error(std::string error_msg);
-void handle_error_char();
-void handle_error_string_end();
-void handle_error_undefined_escape();
-void handle_error_unclosed_string();
-void handle_error_undefined_escape_x();
+
+class Token {
+private:
+  TokenType token_type;
+public:
+  Token(TokenType token_type) : token_type(token_type) {}
+  virtual void handle();
+};
+
+
+class CommentToken : public Token {
+public:
+  CommentToken(TokenType token_type = COMMENT) : Token(token_type) {}
+  void handle() override;
+};
+
+
+class StringToken : public Token {
+private:
+  static bool is_open;
+  static std::string current_str;
+public:
+  StringToken(TokenType token_type = STRING) : Token(token_type) {}
+  void handle() override;
+  static void parse_lexeme(std::string& c);
+  static void open();
+  static void close();
+  static void check_string_is_open();
+};
+
+
+namespace Error {
+  void undefined_lexeme();
+  namespace String {
+    void unexpected_end();
+    void undefined_escape_sequence();
+  }
+}
+
+
+void get_tokens();
+Token* parse_token(int token_num);
+void handle_error(int error_num);
+
 
 #endif /* TOKENS_HANDLERS */

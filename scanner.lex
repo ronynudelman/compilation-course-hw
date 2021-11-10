@@ -5,15 +5,15 @@
 
 %option yylineno
 %option noyywrap
-letter        [a-zA-Z]
-digit         [0-9]
-printable     [\x20-\x7E]
-allowed       \\\\|\\\"|\\n|\\r|\\t|\\0|\\x[0-7][0-9A-F]
-undefined_escape	\\.|\\\n|\\\r
-undefined_escape_x	\\x|\\x(.|\r\n)|\\x(.|\r\n)(.|\r\n)
-string_end [\n\r]
-whitespace    [ \t\n\r]
-back_slash		\\
+
+letter                                [a-zA-Z]
+digit                                 [0-9]
+string_printable_char                 [\t\x20-\x7E]
+string_defined_escape_sequence        \\\\|\\\"|\\n|\\r|\\t|\\0|\\x[0-7][0-9A-F]
+string_undefined_escape_sequence      \\.|\\\n|\\\r|\\x|\\x(.|\r\n)|\\x(.|\r\n)(.|\r\n)
+string_unexpected_end                 [\n\r]
+whitespace                            [ \t\n\r]
+
 %x STRING_READ
 
 %%
@@ -47,17 +47,15 @@ continue                                      return CONTINUE;
 {letter}({letter}|{digit})*                   return ID;
 0|[1-9]{digit}*                               return NUM;
 
-\"                                            BEGIN(STRING_READ); return STRING;
-<STRING_READ>{allowed}                        return STRING;
-<STRING_READ>{back_slash}                     BEGIN(INITIAL); return ERROR_UNCLOSED_STRING;
-<STRING_READ>{undefined_escape}				  BEGIN(INITIAL); return ERROR_UNDEFINED_ESCAPE;
-<STRING_READ>{undefined_escape_x}			  BEGIN(INITIAL); return ERROR_UNDEFINED_ESCAPE_X;
-<STRING_READ>{string_end}                     BEGIN(INITIAL); return ERROR_STRING_END;
-<STRING_READ>\"                               BEGIN(INITIAL); return STRING;
-<STRING_READ>{printable}                      return STRING;
-<STRING_READ>.                                BEGIN(INITIAL); return ERROR_CHAR;
+\"                                                  BEGIN(STRING_READ); return STRING;
+<STRING_READ>{string_defined_escape_sequence}       return STRING;
+<STRING_READ>{string_undefined_escape_sequence}     return ERROR_STRING_UNDEFINED_ESCAPE_SEQUENCE;
+<STRING_READ>{string_unexpected_end}                return ERROR_STRING_UNEXPECTED_END;
+<STRING_READ>\"                                     BEGIN(INITIAL); return STRING;
+<STRING_READ>{string_printable_char}                return STRING;
+<STRING_READ>.                                      return ERROR_UNDEFINED_LEXEME;
 
 {whitespace}                                  ;
-.                                             return ERROR_CHAR;
+.                                             return ERROR_UNDEFINED_LEXEME;
 
 %%
