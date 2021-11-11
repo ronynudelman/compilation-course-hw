@@ -381,7 +381,7 @@ tests/tester.py --compile --run_test 4
             error_expected_str = "Error " + undefined_lexeme + "\n"
             error_input = undefined_lexeme
             return error_expected_str, error_input
-        elif error_type =="ERROR_STRING_UNEXPECTED_END":
+        elif error_type == "ERROR_STRING_UNEXPECTED_END":
             error_expected_str = "Error unclosed string\n"
             _, error_input, _ = cls.get_random_string_token()
             error_input = error_input[:-1] + "\n" + error_input[-1]
