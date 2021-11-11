@@ -1,6 +1,0 @@
-add support for no spaces at all between tokens
-need to classify each token - can it not have any space after it or not
-i.e.
-id must have any space after its token while string doesn't need to have any space
-
-CRLF in the pdf file - what should we do with it?
