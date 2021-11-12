@@ -19,6 +19,7 @@ class ColorText:
 
 class Tester:
 
+    ENCODE = "latin-1"
     TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
     TEST_FILES_DIR = os.path.join(TESTS_DIR, "test_files")
     UTILS_DIR = os.path.join(TESTS_DIR, "utils")
@@ -40,7 +41,7 @@ class Tester:
     HEX_CHARS = []
     SPECIAL_STRING_CHARS = []
     UNDEFINED_LEXEMES = []
-    with open(CONFIG_FILE, 'r') as config_file:
+    with open(CONFIG_FILE, 'r', encoding=ENCODE) as config_file:
         next_line = config_file.readline().strip('\n')
         assert next_line.startswith("NUM_OF_TOKENS="), "Error: config file"
         GENERATED_TOKENS = int(next_line.replace("NUM_OF_TOKENS=", ""))
@@ -136,7 +137,7 @@ tests/tester.py --compile --run_test 4
         if not os.path.isfile(diff_file_name):
             cls.colored_print("File does not exist!\n", "RED", new_line=True)
         else:
-            with open(diff_file_name, 'r') as diff_file:
+            with open(diff_file_name, 'r', encoding=cls.ENCODE) as diff_file:
                 cls.colored_print("\nDiff file location:", "YELLOW", new_line=True)
                 cls.colored_print(diff_file_name, "DEFAULT", new_line=True)
                 cls.colored_print("\nPrinting diff file...", "YELLOW", new_line=True)
@@ -153,7 +154,7 @@ tests/tester.py --compile --run_test 4
 
     @classmethod
     def generate_basic_tokens_dict(cls):
-        with open(cls.BASIC_TOKENS_FILE) as basic_tokens_file:
+        with open(cls.BASIC_TOKENS_FILE, encoding=cls.ENCODE) as basic_tokens_file:
             line_number = 0
             for next_line in basic_tokens_file:
                 next_line = next_line.strip('\n').split()
@@ -164,13 +165,13 @@ tests/tester.py --compile --run_test 4
 
     @classmethod
     def generate_binop_token_list(cls):
-        with open(cls.BINOP_TOKEN_FILE, 'r') as binop_token_file:
+        with open(cls.BINOP_TOKEN_FILE, 'r', encoding=cls.ENCODE) as binop_token_file:
             for next_line in binop_token_file:
                 cls.BINOP_TOKEN_LIST.append(next_line.strip('\n'))
 
     @classmethod
     def generate_relop_token_list(cls):
-        with open(cls.RELOP_TOKEN_FILE, 'r') as relop_token_file:
+        with open(cls.RELOP_TOKEN_FILE, 'r', encoding=cls.ENCODE) as relop_token_file:
             for next_line in relop_token_file:
                 cls.RELOP_TOKEN_LIST.append(next_line.strip('\n'))
 
@@ -196,7 +197,7 @@ tests/tester.py --compile --run_test 4
 
     @classmethod
     def generate_undefined_lexemes_list(cls):
-        with open(cls.UNDEFINED_LEXEMES_FILE, 'r') as undefined_lexemes_file:
+        with open(cls.UNDEFINED_LEXEMES_FILE, 'r', encoding=cls.ENCODE) as undefined_lexemes_file:
             for line in undefined_lexemes_file:
                 lexeme = chr(int(line.strip('\n')))
                 cls.UNDEFINED_LEXEMES.append(lexeme)
@@ -402,8 +403,8 @@ tests/tester.py --compile --run_test 4
             error_location = random.randint(0, cls.GENERATED_TOKENS)
         else:
             error_location = cls.GENERATED_TOKENS + 1
-        with open(input_file_name, 'w') as input_file:
-            with open(expected_file_name, 'w') as expected_file:
+        with open(input_file_name, 'w', encoding=cls.ENCODE) as input_file:
+            with open(expected_file_name, 'w', encoding=cls.ENCODE) as expected_file:
                 current_line_number = 1
                 for _ in range(cls.GENERATED_TOKENS):
                     whitespace = cls.get_random_whitespace()
@@ -470,8 +471,8 @@ tests/tester.py --compile --run_test 4
 
     @classmethod
     def run_single_test(cls, input_file_name, output_file_name):
-        with open(input_file_name, 'r') as input_file:
-            with open(output_file_name, 'w') as output_file:
+        with open(input_file_name, 'r', encoding=cls.ENCODE) as input_file:
+            with open(output_file_name, 'w', encoding=cls.ENCODE) as output_file:
                 subprocess.run(cls.RUN_TEST_CMD,
                                 stdin=input_file,
                                 stdout=output_file,
@@ -485,7 +486,7 @@ tests/tester.py --compile --run_test 4
             return False
         else:
             cls.colored_print(f"{spaces}FAILED", "RED", new_line=True)
-            with open(diff_file_name, 'w') as diff_file:
+            with open(diff_file_name, 'w', encoding=cls.ENCODE) as diff_file:
                 for line in diff_lines:
                     diff_file.write(line + '\n')
             return True
@@ -494,8 +495,8 @@ tests/tester.py --compile --run_test 4
     def check_diff_single_file(cls, output_file_name, expected_file_name,
                                 diff_file_name, file_index):
         diff_lines = []
-        with open(output_file_name, 'r') as output_file:
-            with open(expected_file_name, 'r') as expected_file:
+        with open(output_file_name, 'r', encoding=cls.ENCODE) as output_file:
+            with open(expected_file_name, 'r', encoding=cls.ENCODE) as expected_file:
                 output_str = output_file.read().strip().splitlines()
                 expected_str = expected_file.read().strip().splitlines()
                 for line in difflib.unified_diff(output_str,
